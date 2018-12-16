@@ -23,10 +23,15 @@ class BetterBulkLoader_Result extends BulkLoader_Result
     /**
      * @param string $message Reason for skipping
      */
-    public function addSkipped($message = null)
-    {
+    
+    /**
+     * @param string $message Reason for skipping
+     */
+    public function addSkipped($message = null, $index = 'unknown', $row = 'unknown') {
         $this->skipped[] = array(
-            'Message' => $message
+            'Message'   => $message,
+            'Index'     => $index,
+            'Row'       => $row,
         );
     }
 
@@ -60,6 +65,14 @@ class BetterBulkLoader_Result extends BulkLoader_Result
                 'BulkLoader.SKIPPEDRECORDS', "Skipped {count} bad records.",
                 array('count' => $this->SkippedCount())
             );
+
+            /**
+             * TODO: move to own method
+             */
+            foreach($this->skipped as $skipped) {
+                $output['skipped'] .= "Index: {$skipped['Index']} Row: {$skipped['Row']} Message: " . print_r($skipped['Message'], true) . "\n";
+            }
+            
         }
 
         if (!$this->CreatedCount() && !$this->UpdatedCount()) {

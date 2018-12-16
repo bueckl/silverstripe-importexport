@@ -114,11 +114,22 @@ class GridFieldImporter_Request extends RequestHandler
         //TODO: validate file?
         $mapper = new CSVFieldMapper($file->getFullPath());
         $mapper->setMappableCols($this->getMappableColumns());
-        //load previously stored values
-        if ($cachedmapping = $this->getCachedMapping()) {
-            $mapper->loadDataFrom($cachedmapping);
-        }
+    $mappings = array();
+    $modelClass = $this->gridField->getModelClass();
+    $instance = new $modelClass();
+    if ($instance->hasMethod('DefaultImportMapping')) {
+      $mappings = $instance->DefaultImportMapping();
+    }
 
+        //load previously stored values
+    if($cachedmapping = $this->getCachedMapping()){
+      $mappings = array_merge($mappings, $cachedmapping);
+    }
+    if (!empty($mappings)) {
+      $mapper->loadDataFrom($mappings);
+    }
+
+    
         $form = $this->MapperForm();
         $form->Fields()->unshift(
             new LiteralField('mapperfield', $mapper->forTemplate())
