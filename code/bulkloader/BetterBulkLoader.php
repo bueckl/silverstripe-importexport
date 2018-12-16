@@ -255,6 +255,63 @@ class BetterBulkLoader extends BulkLoader {
         }
 
         $objID = $obj->ID;
+
+        $memberID = $objID;
+
+
+
+        if ($obj && $obj->ID > 0) {
+
+            $member = $obj;
+
+            $member->addToGroupByCode('attendees');
+
+            $importedLocale = $cleanedRecord['Locale'];
+
+            if ($importedLocale == "english" ) {
+                $member->Locale = "en_GB";
+            } else {
+                $member->Locale = "de_DE";
+            }
+
+
+
+            // $importedEvent = $cleanedRecord['Event'];
+
+            // if ($importedEvent) {
+            //     $Event = Event::get()->filter('Name', $importedEvent)->First();
+            // }
+
+            // if ($importedEvent && $Event) {
+            //     $member->Events()->removeAll();
+            //     $member->Events()->add($Event);
+            // }
+
+            // Auto Import und Signup
+            if ($member->AutoSignUp == 1 ) {
+                $member->WillAssist = "YES";
+                $member->NDAAccepted = 1;
+                $member->ComplianceAccepted = 1;
+            }
+
+            // Gemerating welcome link
+            $member->generateWelcomeLink();
+
+            // Setting locale
+            // $member->Locale = $this->locale;
+
+            //This overwrites the "Locale" selection made in the user interface
+            // if ($member->Slot() && $member->Slot()->Name == "Markt EN") {
+            //     $member->Locale = "en_GB";
+            // }
+            if ( $member->write() ) {
+              SS_Log::log('TeilnehmerImport: SUCCESS: ' . $member->Email .PHP_EOL, SS_Log::NOTICE);
+            } else {
+              SS_Log::log('TeilnehmerImport: FAILED: ' . implode("|",$cleanedRecord) . PHP_EOL, SS_Log::ERR);
+            }
+
+        }
+
         // reduce memory usage
         $obj->destroy();
         unset($existingObj);
@@ -263,6 +320,18 @@ class BetterBulkLoader extends BulkLoader {
         return $objID;
     }
 
+
+
+    public static function clean($str)
+    {
+        $cleanedVAl = trim($str);
+        $cleanedVAl = str_replace("\r", ' ', $cleanedVAl);
+        $cleanedVAl = str_replace("\n", ' ', $cleanedVAl);
+        $cleanedVAl = str_replace("'", '', $cleanedVAl);
+        $cleanedVAl = str_replace("\"", '', $cleanedVAl);
+        return $cleanedVAl;
+    }
+    
 
     /**
      * Convert the record's keys to appropriate columnMap keys.
