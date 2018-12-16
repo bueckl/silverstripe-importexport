@@ -259,6 +259,14 @@ class BetterBulkLoader extends BulkLoader {
         $memberID = $objID;
 
 
+        $cleanedRecord = [];
+        foreach ($record as $key => $val) {
+            $cleanedVAl = self::clean($val);
+            $cleanedKey = self::clean($key);
+            $cleanedRecord[$cleanedKey] = $cleanedVAl;
+        }
+
+
 
         if ($obj && $obj->ID > 0) {
 
@@ -331,7 +339,7 @@ class BetterBulkLoader extends BulkLoader {
         $cleanedVAl = str_replace("\"", '', $cleanedVAl);
         return $cleanedVAl;
     }
-    
+
 
     /**
      * Convert the record's keys to appropriate columnMap keys.
