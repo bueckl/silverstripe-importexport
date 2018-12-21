@@ -91,7 +91,7 @@ class BetterBulkLoader extends BulkLoader {
      */
     public function setRelationLinkDefault($default) {
         $this->relationLinkDefault = $default;
-        return $this;   
+        return $this;
     }
 
     /**
@@ -101,7 +101,7 @@ class BetterBulkLoader extends BulkLoader {
      */
     public function setRelationCreateDefault($default) {
         $this->relationCreateDefault = $default;
-        return $this;   
+        return $this;
     }
 
     public function setPublishPages($dopubilsh){
@@ -136,9 +136,9 @@ class BetterBulkLoader extends BulkLoader {
 
     /**
      * Import all records from the source.
-     * 
+     *
      * @param  string  $filepath
-     * @param  boolean $preview 
+     * @param  boolean $preview
      * @return BulkLoader_Result
      */
     protected function processAll($filepath, $preview = false) {
@@ -153,7 +153,7 @@ class BetterBulkLoader extends BulkLoader {
             $results->currentIndex = $index;
             $this->processRecord($record, $this->columnMap, $results, $preview);
         }
-        
+
         return $results;
     }
 
@@ -276,11 +276,12 @@ class BetterBulkLoader extends BulkLoader {
 
             $importedLocale = $cleanedRecord['Locale'];
 
-            if ($importedLocale == "english" ) {
+            if ( $importedLocale == "english" || $importedLocale == "English" || $importedLocale == "Englisch" ) {
                 $member->Locale = "en_GB";
             } else {
                 $member->Locale = "de_DE";
             }
+
 
 
 
@@ -324,7 +325,7 @@ class BetterBulkLoader extends BulkLoader {
         $obj->destroy();
         unset($existingObj);
         unset($obj);
-        
+
         return $objID;
     }
 
@@ -379,7 +380,7 @@ class BetterBulkLoader extends BulkLoader {
                 return false;
             }
         }
-        
+
         return true;
     }
 
@@ -703,7 +704,7 @@ class BetterBulkLoader extends BulkLoader {
     }
 
     /**
-     * Find an existing objects based on one or more uniqueness columns 
+     * Find an existing objects based on one or more uniqueness columns
      * specified via {@link self::$duplicateChecks}.
      *
      * @param array $record data
