@@ -160,83 +160,167 @@ class BetterBulkLoader extends BulkLoader {
     /**
      * Import the given record
      */
-    protected function processRecord($record, $columnMap, &$results, $preview = false)
-    {
-        if (!is_array($record) || empty($record) || !array_filter($record)) {
-            $results->addSkipped("Empty/invalid record data.");
+ /**
+     * Import the given record
+     */
+    protected function processRecord($record, $columnMap, &$results, $preview = false) {
+        $rowNumber = $results->currentIndex + (method_exists($this->source, 'getHasHeader') && $this->source->getHasHeader() ? 2 : 1);
+        if(!is_array($record) || empty($record) || !array_filter($record)){
+            $results->addSkipped("Empty/invalid record data.", $results->currentIndex, $rowNumber);
             return;
         }
         //map incoming record according to the standardisation mapping (columnMap)
         $record = $this->columnMapRecord($record);
         //skip if required data is not present
-        if (!$this->hasRequiredData($record)) {
-            $results->addSkipped("Required data is missing.");
+        if(!$this->hasRequiredData($record)){
+            $results->addSkipped("Required data is missing.", $results->currentIndex,$rowNumber);
             return;
         }
         $modelClass = $this->objectClass;
         $placeholder = new $modelClass();
 
         //populate placeholder object with transformed data
-        foreach ($this->mappableFields_cache as $field => $label) {
+        foreach($this->mappableFields_cache as $field => $label){
             //skip empty fields
-            if (!isset($record[$field]) || empty($record[$field])) {
+            if(!isset($record[$field]) || empty($record[$field])){
                 continue;
             }
+
             $this->transformField($placeholder, $field, $record[$field]);
         }
+
         //find existing duplicate of placeholder data
         $obj = null;
         $existing = null;
-        if (!$placeholder->ID && !empty($this->duplicateChecks)) {
+        if(!$placeholder->ID && !empty($this->duplicateChecks)){
             $data = $placeholder->getQueriedDatabaseFields();
             //don't match on ID, ClassName or RecordClassName
             unset($data['ID'], $data['ClassName'], $data['RecordClassName']);
             $existing = $this->findExistingObject($data);
         }
-        if ($existing) {
+        if($existing){
             $obj = $existing;
             $obj->update($data);
-        } else {
-            // new record
-            if (!$this->addNewRecords) {
-                $results->addSkipped('New record not added');
-                return;
-            }
+        }else{
             $obj = $placeholder;
         }
 
         //callback access to every object
-        if (is_callable($this->recordCallback)) {
+        if(is_callable($this->recordCallback)){
             $callback  = $this->recordCallback;
             $callback($obj, $record);
         }
 
         $changed = $existing && $obj->isChanged();
         //try/catch for potential write() ValidationException
-        try {
-            // write obj record
-            $obj->write();
-
-            //publish pages
-            if ($this->publishPages && $obj instanceof SiteTree) {
-                $obj->publish('Stage', 'Live');
-            }
-
-            // save to results
-            if ($existing) {
-                if ($changed) {
-                    $results->addUpdated($obj);
-                } else {
-                    $results->addSkipped("No data was changed.");
+        try{
+            $bSkip = false;
+            if ($obj->hasMethod('getCMSValidator')) {
+                $doValidator = $obj->getCMSValidator();
+                $form = new Form($obj,'EditForm',$obj->getCMSFields(),$obj->getCMSActions(),$doValidator);
+                $form->loadDataFrom($obj);
+                $oValidator = $form->getValidator();
+                $oValidator->php($obj->toMap());
+                $arrErrors = $oValidator->getErrors();
+                if ($arrErrors) {
+                    //TODO: at the moment $arrErrors is array of numbers
+                    $results->addSkipped(print_r($arrErrors, true), $results->currentIndex, $rowNumber);
+                    $bSkip = true;
                 }
-            } else {
-                $results->addCreated($obj);
+
             }
-        } catch (ValidationException $e) {
-            $results->addSkipped($e->getMessage());
+
+            if (!$bSkip) {
+                // write obj record
+                $obj->write();
+
+                //publish pages
+                if ($this->publishPages && $obj instanceof SiteTree) {
+                    $obj->publish('Stage', 'Live');
+                }
+
+                // save to results
+                if ($existing) {
+                    if ($changed) {
+                        $results->addUpdated($obj);
+                    } else {
+                        $results->addSkipped("No data was changed.", $results->currentIndex, $rowNumber);
+                    }
+                } else {
+                    $results->addCreated($obj);
+                }
+            }
+        }catch(ValidationException $e) {
+            $results->addSkipped($e->getMessage(), $results->currentIndex, $rowNumber);
         }
 
         $objID = $obj->ID;
+
+        $memberID = $objID;
+
+
+        $cleanedRecord = [];
+        foreach ($record as $key => $val) {
+            $cleanedVAl = self::clean($val);
+            $cleanedKey = self::clean($key);
+            $cleanedRecord[$cleanedKey] = $cleanedVAl;
+        }
+
+
+
+        if ($obj && $obj->ID > 0) {
+
+            $member = $obj;
+
+            $member->addToGroupByCode('attendees');
+
+            $importedLocale = $cleanedRecord['Locale'];
+
+            if ( $importedLocale == "english" || $importedLocale == "English" || $importedLocale == "Englisch" ) {
+                $member->Locale = "en_GB";
+            } else {
+                $member->Locale = "de_DE";
+            }
+
+
+
+
+            // $importedEvent = $cleanedRecord['Event'];
+
+            // if ($importedEvent) {
+            //     $Event = Event::get()->filter('Name', $importedEvent)->First();
+            // }
+
+            // if ($importedEvent && $Event) {
+            //     $member->Events()->removeAll();
+            //     $member->Events()->add($Event);
+            // }
+
+            // Auto Import und Signup
+            if ($member->AutoSignUp == 1 ) {
+                $member->WillAssist = "YES";
+                $member->NDAAccepted = 1;
+                $member->ComplianceAccepted = 1;
+            }
+
+            // Gemerating welcome link
+            $member->generateWelcomeLink();
+
+            // Setting locale
+            // $member->Locale = $this->locale;
+
+            //This overwrites the "Locale" selection made in the user interface
+            // if ($member->Slot() && $member->Slot()->Name == "Markt EN") {
+            //     $member->Locale = "en_GB";
+            // }
+            if ( $member->write() ) {
+              SS_Log::log('TeilnehmerImport: SUCCESS: ' . $member->Email .PHP_EOL, SS_Log::NOTICE);
+            } else {
+              SS_Log::log('TeilnehmerImport: FAILED: ' . implode("|",$cleanedRecord) . PHP_EOL, SS_Log::ERR);
+            }
+
+        }
+
         // reduce memory usage
         $obj->destroy();
         unset($existingObj);
@@ -244,6 +328,7 @@ class BetterBulkLoader extends BulkLoader {
 
         return $objID;
     }
+
 
 
     public static function clean($str)
