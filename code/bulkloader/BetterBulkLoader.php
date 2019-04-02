@@ -523,9 +523,13 @@ class BetterBulkLoader extends BulkLoader {
      * @param  mixed $value
      */
     protected function transformField($placeholder, $field, $value){
+        
+       
         $callback = isset($this->transforms[$field]['callback']) &&
                     is_callable($this->transforms[$field]['callback']) ?
                     $this->transforms[$field]['callback'] : null;
+        
+
         //handle relations
         if($this->isRelation($field)){
             if ($this->isHasOneRelation($field))

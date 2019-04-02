@@ -12,9 +12,9 @@ class CsvBulkLoaderSource extends BulkLoaderSource
 
     protected $filepath;
 
-    protected $delimiter = ',';
+    protected $delimiter = ';';
 
-    protected $enclosure = '"';
+    protected $enclosure = ' ';
 
     protected $hasheader = true;
 

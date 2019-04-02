@@ -33,7 +33,7 @@ class CSVPreviewer extends ViewableData
      */
     public function loadCSV()
     {
-        $parser = new CSVParser($this->file);
+        $parser = new CSVParser($this->file, ";", " ");
         $count = 0;
         foreach ($parser as $row) {
             $this->rows[]= $row;
