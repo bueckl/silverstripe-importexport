@@ -9,6 +9,17 @@
  *
  * Failed record imports will be marked as skipped.
  */
+namespace ImportExport\Bulkloader;
+
+use ImportExport\Bulkloader\Sources\BulkLoaderSource;
+use SilverStripe\CMS\Model\SiteTree;
+use SilverStripe\Dev\BulkLoader;
+use SilverStripe\Dev\BulkLoader_Result;
+use SilverStripe\ORM\DataList;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\SS_List;
+use SilverStripe\ORM\ValidationException;
+
 class BetterBulkLoader extends BulkLoader
 {
 
@@ -98,6 +109,10 @@ class BetterBulkLoader extends BulkLoader
         return $this;
     }
 
+    public function preview($filepath) {
+
+    }
+
     /**
      * Set the default behaviour for creating new relation objects.
      * @param boolean $default
@@ -145,9 +160,9 @@ class BetterBulkLoader extends BulkLoader
 
     /**
      * Import all records from the source.
-     * 
+     *
      * @param  string  $filepath
-     * @param  boolean $preview 
+     * @param  boolean $preview
      * @return BulkLoader_Result
      */
     protected function processAll($filepath, $preview = false)
@@ -162,7 +177,7 @@ class BetterBulkLoader extends BulkLoader
         foreach ($iterator as $record) {
             $this->processRecord($record, $this->columnMap, $results, $preview);
         }
-        
+
         return $results;
     }
 
@@ -250,7 +265,7 @@ class BetterBulkLoader extends BulkLoader
         $obj->destroy();
         unset($existingObj);
         unset($obj);
-        
+
         return $objID;
     }
 
@@ -294,7 +309,7 @@ class BetterBulkLoader extends BulkLoader
                 return false;
             }
         }
-        
+
         return true;
     }
 
@@ -437,7 +452,7 @@ class BetterBulkLoader extends BulkLoader
     }
 
     /**
-     * Find an existing objects based on one or more uniqueness columns 
+     * Find an existing objects based on one or more uniqueness columns
      * specified via {@link self::$duplicateChecks}.
      *
      * @param array $record data

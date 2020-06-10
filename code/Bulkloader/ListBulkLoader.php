@@ -3,6 +3,10 @@
 /**
  * Peforms bulk loading, but works with a given DataList.
  */
+namespace ImportExport\Bulkloader;
+
+use SilverStripe\ORM\DataList;
+
 class ListBulkLoader extends BetterBulkLoader
 {
 

@@ -3,6 +3,10 @@
 /**
  * Store result information about a BulkLoader import.
  */
+namespace ImportExport\Bulkloader;
+
+use SilverStripe\Dev\BulkLoader_Result;
+
 class BetterBulkLoader_Result extends BulkLoader_Result
 {
 
@@ -71,7 +75,7 @@ class BetterBulkLoader_Result extends BulkLoader_Result
 
     /**
      * Genenrate a human-readable result message.
-     * 
+     *
      * @return string
      */
     public function getMessage()
@@ -92,7 +96,7 @@ class BetterBulkLoader_Result extends BulkLoader_Result
         if ($this->SkippedCount()) {
             $type= "warning";
         }
-        
+
         return $type;
     }
 }

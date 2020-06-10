@@ -4,6 +4,10 @@
  * Backwards copatible CsvBulkLoader
  * Almost api equivelant to CSVBulkLoader
  */
+namespace ImportExport\Bulkloader;
+
+use ImportExport\Bulkloader\Sources\CsvBulkLoaderSource;
+
 class CsvBetterBulkLoader extends BetterBulkLoader
 {
 

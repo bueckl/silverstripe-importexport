@@ -3,6 +3,8 @@
 /**
  * A visual interface for mapping field names.
  */
+namespace ImportExport;
+
 class CSVFieldMapper extends CSVPreviewer
 {
 
@@ -26,7 +28,7 @@ class CSVFieldMapper extends CSVPreviewer
 
         return $this;
     }
-    
+
     /**
      * Provide heading dropdowns for creating mappings
      * @return ArrayList

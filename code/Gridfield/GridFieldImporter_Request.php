@@ -4,6 +4,28 @@
  * Request handler that provides a seperate interface
  * for users to map columns and trigger import.
  */
+namespace ImportExport\Gridfield;
+
+use ImportExport\CSVFieldMapper;
+use SilverStripe\AssetAdmin\Forms\UploadField;
+use SilverStripe\Assets\File;
+use SilverStripe\Control\Controller;
+use SilverStripe\Control\HTTPRequest;
+use SilverStripe\Control\HTTPResponse;
+use SilverStripe\Control\RequestHandler;
+use SilverStripe\Core\Convert;
+use SilverStripe\Dev\BulkLoader_Result;
+use SilverStripe\Forms\CheckboxField;
+use SilverStripe\Forms\FieldList;
+use SilverStripe\Forms\Form;
+use SilverStripe\Forms\FormAction;
+use SilverStripe\Forms\GridField\GridField;
+use SilverStripe\Forms\GridField\GridField_URLHandler;
+use SilverStripe\Forms\GridField\GridFieldDetailForm_ItemRequest;
+use SilverStripe\Forms\HiddenField;
+use SilverStripe\Forms\LiteralField;
+use SilverStripe\View\ArrayData;
+
 class GridFieldImporter_Request extends RequestHandler
 {
 
@@ -75,15 +97,15 @@ class GridFieldImporter_Request extends RequestHandler
 
     /**
      * Upload the given file, and import or start preview.
-     * @param  SS_HTTPRequest $request
+     * @param  HTTPRequest $request
      * @return string
      */
-    public function upload(SS_HTTPRequest $request)
+    public function upload(HTTPRequest $request)
     {
         $field = $this->getUploadField();
         $uploadResponse = $field->upload($request);
         //decode response body. ugly hack ;o
-        $body = Convert::json2array($uploadResponse->getBody());
+        $body = json_decode($uploadResponse->getBody());
         $body = array_shift($body);
         //add extra data
         $body['import_url'] = Controller::join_links(
@@ -94,17 +116,17 @@ class GridFieldImporter_Request extends RequestHandler
         //don't return buttons at all
         unset($body['buttons']);
         //re-encode
-        $response = new SS_HTTPResponse(Convert::raw2json(array($body)));
+        $response = new HTTPResponse(json_encode(array($body)));
 
         return $response;
     }
 
     /**
      * Action for getting preview interface.
-     * @param  SS_HTTPRequest $request
+     * @param  HTTPRequest $request
      * @return string
      */
-    public function preview(SS_HTTPRequest $request)
+    public function preview(HTTPRequest $request)
     {
         $file = File::get()
             ->byID($request->param('FileID'));
@@ -177,9 +199,9 @@ class GridFieldImporter_Request extends RequestHandler
 
     /**
      * Import the current file
-     * @param  SS_HTTPRequest $request
+     * @param  HTTPRequest $request
      */
-    public function import(SS_HTTPRequest $request)
+    public function import(HTTPRequest $request)
     {
         $hasheader = (bool)$request->postVar('HasHeader');
         $cleardata = $this->component->getCanClearData() ?
@@ -238,7 +260,7 @@ class GridFieldImporter_Request extends RequestHandler
      *
      * @link UploadField->fileexists()
      */
-    public function fileexists(SS_HTTPRequest $request)
+    public function fileexists(HTTPRequest $request)
     {
         $uploadField = $this->getUploadField();
         return $uploadField->fileexists($request);
@@ -309,10 +331,10 @@ class GridFieldImporter_Request extends RequestHandler
     * NOTE: Honestly, this should be built into SS_HTTPRequest, but we can't depend on that right now... so instead,
     * this is being copied verbatim from Controller (in the framework).
     *
-    * @param SS_HTTPRequest $request
+    * @param HTTPRequest $request
     * @return string
     */
-   protected function getBackURL(SS_HTTPRequest $request) {
+   protected function getBackURL(HTTPRequest $request) {
       // Initialize a sane default (basically redirects to root admin URL).
       $controller = $this->getToplevelController();
       $url = method_exists($this->requestHandler, "Link") ?

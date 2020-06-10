@@ -7,6 +7,8 @@ use Goodby\CSV\Import\Standard\LexerConfig;
 /**
  * CSV file bulk loading source
  */
+namespace ImportExport\Bulkloader\Sources;
+
 class CsvBulkLoaderSource extends BulkLoaderSource
 {
 
@@ -104,7 +106,7 @@ class CsvBulkLoaderSource extends BulkLoaderSource
         $lexer = new Lexer($config);
         $lexer->parse($this->filepath, $interpreter);
 
-        return new ArrayIterator($output);
+        return new \ArrayIterator($output);
     }
 
     public function getFirstRow()

@@ -1,8 +1,15 @@
 <?php
 
+namespace ImportExport\Extensions;
+
+use ImportExport\Gridfield\GridFieldImporter;
+use SilverStripe\Core\Config\Config;
+use SilverStripe\Core\Extension;
+use SilverStripe\Security\Security;
+
 class ImportAdminExtension extends Extension
 {
-    
+
     /**
      * Prevent existing import form from showing up
      * @todo: there should be a better way to disable from an extension, rather than
@@ -30,7 +37,7 @@ class ImportAdminExtension extends Extension
                 return;
             }
             //don't proceed if can't create
-            if (!singleton($modelclass)->canCreate(Member::currentUser())) {
+            if (!singleton($modelclass)->canCreate(Security::getCurrentUser())) {
                 return;
             }
             //allow config to avoid adding when there are existing importers
@@ -42,7 +49,7 @@ class ImportAdminExtension extends Extension
             ) {
                 return;
             }
-            
+
             //add the component
             $config->addComponent(new GridFieldImporter('before'));
         }

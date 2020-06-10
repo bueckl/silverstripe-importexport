@@ -3,6 +3,19 @@
 /**
  * Adds a way to import data to the GridField's DataList
  */
+namespace ImportExport\Gridfield;
+
+use ImportExport\Bulkloader\BetterBulkLoader;
+use ImportExport\Bulkloader\Sources\CsvBulkLoaderSource;
+use SilverStripe\AssetAdmin\Forms\UploadField;
+use SilverStripe\Forms\GridField\GridField;
+use SilverStripe\Forms\GridField\GridField_FormAction;
+use SilverStripe\Forms\GridField\GridField_HTMLProvider;
+use SilverStripe\Forms\GridField\GridField_URLHandler;
+use SilverStripe\ORM\HasManyList;
+use SilverStripe\View\ArrayData;
+use SilverStripe\View\Requirements;
+
 class GridFieldImporter implements GridField_HTMLProvider, GridField_URLHandler
 {
 
