@@ -1,13 +1,13 @@
 <?php
 
-use Goodby\CSV\Import\Standard\Interpreter;
-use Goodby\CSV\Import\Standard\Lexer;
-use Goodby\CSV\Import\Standard\LexerConfig;
-
 /**
  * CSV file bulk loading source
  */
 namespace ImportExport\Bulkloader\Sources;
+
+use Goodby\CSV\Import\Standard\Interpreter;
+use Goodby\CSV\Import\Standard\Lexer;
+use Goodby\CSV\Import\Standard\LexerConfig;
 
 class CsvBulkLoaderSource extends BulkLoaderSource
 {
@@ -70,7 +70,7 @@ class CsvBulkLoaderSource extends BulkLoaderSource
 
     /**
      * Get a new CSVParser using defined settings.
-     * @return Iterator
+     * @return \Iterator
      */
     public function getIterator()
     {
