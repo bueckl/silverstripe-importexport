@@ -7,6 +7,7 @@
 namespace ImportExport\Gridfield;
 
 use ImportExport\CSVFieldMapper;
+use Psr\SimpleCache\CacheInterface;
 use SilverStripe\AssetAdmin\Forms\UploadField;
 use SilverStripe\Assets\File;
 use SilverStripe\Control\Controller;
@@ -14,6 +15,7 @@ use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Control\HTTPResponse;
 use SilverStripe\Control\RequestHandler;
 use SilverStripe\Core\Convert;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\BulkLoader_Result;
 use SilverStripe\Forms\CheckboxField;
 use SilverStripe\Forms\FieldList;
@@ -301,7 +303,7 @@ class GridFieldImporter_Request extends RequestHandler
     {
         $mapping = array_filter($mapping);
         if ($mapping && !empty($mapping)) {
-            $cache = SS_Cache::factory('gridfieldimporter');
+            $cache = Injector::inst()->get(CacheInterface::class . '.gridfieldimporter');
             $cache->save(serialize($mapping), $this->cacheKey());
         }
     }
@@ -311,7 +313,7 @@ class GridFieldImporter_Request extends RequestHandler
      */
     protected function getCachedMapping()
     {
-        $cache = SS_Cache::factory('gridfieldimporter');
+        $cache = Injector::inst()->get(CacheInterface::class . '.gridfieldimporter');
         if ($result = $cache->load($this->cacheKey())) {
             return unserialize($result);
         }
@@ -334,7 +336,8 @@ class GridFieldImporter_Request extends RequestHandler
     * @param HTTPRequest $request
     * @return string
     */
-   protected function getBackURL(HTTPRequest $request) {
+   public function getBackURL() {
+       $request = $this->getRequest();
       // Initialize a sane default (basically redirects to root admin URL).
       $controller = $this->getToplevelController();
       $url = method_exists($this->requestHandler, "Link") ?
