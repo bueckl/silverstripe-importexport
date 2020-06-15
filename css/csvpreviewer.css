@@ -12,7 +12,7 @@
 
 .csvpreviewer{
 	/* find out how to fill the width and scroll the overflow*/
-	width: 820px;
+	width: calc(100vw - 200px);
 	max-width: 100%;
 	overflow-x: scroll;
 }
@@ -40,3 +40,7 @@
 #ClearData{
 	padding-left: 5px;
 }
+
+/*.listbox {
+	height: 200px;
+}*/

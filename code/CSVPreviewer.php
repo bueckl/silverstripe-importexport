@@ -11,7 +11,7 @@ class CSVPreviewer extends ViewableData
 
     protected $rows;
 
-    protected $previewcount = 5;
+    protected $previewcount = 10;
 
     public function __construct($file)
     {
