@@ -4,6 +4,9 @@
  */
 namespace ImportExport;
 
+use SilverStripe\Dev\CSVParser;
+use SilverStripe\ORM\ArrayList;
+use SilverStripe\View\ArrayData;
 use SilverStripe\View\ViewableData;
 
 class CSVPreviewer extends ViewableData

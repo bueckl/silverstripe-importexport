@@ -3,6 +3,7 @@
 namespace ImportExport\Extensions;
 
 use ImportExport\Gridfield\GridFieldImporter;
+use SilverStripe\Admin\ModelAdmin;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Extension;
 use SilverStripe\Security\Security;
@@ -27,13 +28,13 @@ class ImportAdminExtension extends Extension
      */
     public function updateEditForm($form)
     {
-        if ($doadd = Config::inst()->get('ModelAdmin', 'addbetterimporters')) {
+        if ($doadd = Config::inst()->get(ModelAdmin::class, 'addbetterimporters')) {
             $modelclass = $this->owner->modelClass;
             $grid = $form->Fields()->fieldByName($modelclass);
             $config =  $grid->getConfig();
 
             //don't proceed if there is already an importer
-            if ($config->getComponentByType("GridFieldImporter")) {
+            if ($config->getComponentByType(GridFieldImporter::class)) {
                 return;
             }
             //don't proceed if can't create

@@ -5,6 +5,10 @@
  */
 namespace ImportExport;
 
+use SilverStripe\Forms\DropdownField;
+use SilverStripe\ORM\ArrayList;
+use SilverStripe\View\ArrayData;
+
 class CSVFieldMapper extends CSVPreviewer
 {
 
