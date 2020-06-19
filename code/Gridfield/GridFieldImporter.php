@@ -122,7 +122,7 @@ class GridFieldImporter implements GridField_HTMLProvider, GridField_URLHandler
         );
         $importerHTML = ArrayData::create($data)
                     ->renderWith("GridFieldImporter");
-        Requirements::javascript('importexport/javascript/GridFieldImporter.js');
+        Requirements::javascript('burnbright/silverstripe-importexport: javascript/GridFieldImporter.js');
 
         return array(
             $this->targetFragment => $importerHTML
