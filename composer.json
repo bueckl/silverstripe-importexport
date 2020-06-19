@@ -17,8 +17,8 @@
      "extra": {
         "installer-name": "importexport",
          "expose": [
-             "burnbright/silverstripe-importexport/javascript",
-             "burnbright/silverstripe-importexport/css"
+             "javascript",
+             "css"
          ]
     }
 }
