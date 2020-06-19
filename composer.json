@@ -15,6 +15,10 @@
         "goodby/csv": "1.2.x"
     },
      "extra": {
-        "installer-name": "importexport"
+        "installer-name": "importexport",
+         "expose": [
+             "burnbright/silverstripe-importexport/javascript",
+             "burnbright/silverstripe-importexport/css"
+         ]
     }
 }
