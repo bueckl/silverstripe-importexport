@@ -108,9 +108,9 @@ class GridFieldImporter implements GridField_HTMLProvider, GridField_URLHandler
     {
         $button = new GridField_FormAction(
             $gridField,
-            'import',
+            'importer',
             _t('TableListField.CSVIMPORT', 'Import from CSV'),
-            'import',
+            'importer',
             null
         );
         $button->setAttribute('data-icon', 'drive-upload');
