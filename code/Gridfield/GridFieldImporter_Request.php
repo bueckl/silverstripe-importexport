@@ -110,13 +110,13 @@ class GridFieldImporter_Request extends RequestHandler
         $body = json_decode($uploadResponse->getBody());
         $body = array_shift($body);
         //add extra data
-        $body['import_url'] = Controller::join_links(
+        $body->import_url = Controller::join_links(
             $this->Link('preview'), $body->id,
             // Also pull the back URL from the current request so we can persist this particular URL through the following pages.
             "?BackURL=" . $this->getBackURL($request)
         );
         //don't return buttons at all
-        unset($body['buttons']);
+        unset($body->buttons);
         //re-encode
         $response = new HTTPResponse(json_encode(array($body)));
 

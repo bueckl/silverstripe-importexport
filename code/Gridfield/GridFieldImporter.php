@@ -8,6 +8,7 @@ namespace ImportExport\Gridfield;
 use ImportExport\Bulkloader\BetterBulkLoader;
 use ImportExport\Bulkloader\Sources\CsvBulkLoaderSource;
 use SilverStripe\AssetAdmin\Forms\UploadField;
+use SilverStripe\Core\Config\Config;
 use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Forms\GridField\GridField_FormAction;
 use SilverStripe\Forms\GridField\GridField_HTMLProvider;
@@ -74,11 +75,11 @@ class GridFieldImporter implements GridField_HTMLProvider, GridField_URLHandler
     {
         $gridlist = $gridField->getList();
         $class = ($gridlist instanceof HasManyList) ?
-                "ListBulkLoader" : "BetterBulkLoader";
+            "ListBulkLoader" : "BetterBulkLoader";
         //set the correct constructor argument
         $arg = ($class === "ListBulkLoader" ||
             is_subclass_of($class, "ListBulkLoader")) ?
-                $gridlist : $gridField->getModelClass();
+            $gridlist : $gridField->getModelClass();
         $loader = new $class($arg);
         $loader->setSource(new CsvBulkLoaderSource());
 
@@ -108,9 +109,9 @@ class GridFieldImporter implements GridField_HTMLProvider, GridField_URLHandler
     {
         $button = new GridField_FormAction(
             $gridField,
-            'importer',
+            'importcsv',
             _t('TableListField.CSVIMPORT', 'Import from CSV'),
-            'importer',
+            'importcsv',
             null
         );
         $button->setAttribute('data-icon', 'drive-upload');
@@ -121,7 +122,7 @@ class GridFieldImporter implements GridField_HTMLProvider, GridField_URLHandler
             'UploadField' => $uploadfield
         );
         $importerHTML = ArrayData::create($data)
-                    ->renderWith("GridFieldImporter");
+            ->renderWith("GridFieldImporter");
         Requirements::javascript('burnbright/silverstripe-importexport: javascript/GridFieldImporter.js');
 
         return array(
@@ -139,11 +140,20 @@ class GridFieldImporter implements GridField_HTMLProvider, GridField_URLHandler
     {
         // check here later this want to update ***
         $uploadField = UploadField::create(
-                $gridField->Name."_ImportUploadField", 'Upload CSV'
-            )
+            $gridField->Name."_ImportUploadField", 'Upload CSV'
+        )
             ->setForm($gridField->getForm())
-//            ->setConfig('url', $gridField->Link('importer/upload'))
-//            ->setConfig('edit_url', $gridField->Link('importer/import'))
+            ->setSchemaData(
+                ['data' =>
+                    ['createFileEndpoint' =>
+                        [
+                            'url' => $gridField->Link('importer/upload'),
+                            'edit_url' => $gridField->Link('importer/import'),
+                        ],
+                        'maxFilesize' => 1
+                    ]
+                ]
+            )
 //            ->setConfig('allowedMaxFileNumber', 1)
 //            ->setConfig('changeDetection', false)
 //            ->setConfig('canPreviewFolder', false)
@@ -176,6 +186,6 @@ class GridFieldImporter implements GridField_HTMLProvider, GridField_URLHandler
         $controller = $gridField->getForm()->getController();
         $handler    = new GridFieldImporter_Request($gridField, $this, $controller);
 
-        return $handler->handleRequest($request, DataModel::inst());
+        return $handler->handleRequest($request);
     }
 }
