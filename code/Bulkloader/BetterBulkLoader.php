@@ -557,7 +557,7 @@ class BetterBulkLoader extends BulkLoader
         $singleton = singleton($class);
         $fields = (array)$singleton->fieldLabels(false);
         foreach ($fields as $field => $label) {
-            if (!$singleton->getField($field)) {
+            if (!$singleton->dbObject($field)) {
                 unset($fields[$field]);
             }
         }
