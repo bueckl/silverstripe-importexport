@@ -304,7 +304,7 @@ class BetterBulkLoader extends BulkLoader
                 isset($t['required']) &&
                 $t['required'] === true &&
                 (!isset($mappedrecord[$field]) ||
-                empty($mappedrecord[$field]))
+                    empty($mappedrecord[$field]))
             ) {
                 return false;
             }
@@ -322,8 +322,8 @@ class BetterBulkLoader extends BulkLoader
     protected function transformField($placeholder, $field, $value)
     {
         $callback = isset($this->transforms[$field]['callback']) &&
-                    is_callable($this->transforms[$field]['callback']) ?
-                    $this->transforms[$field]['callback'] : null;
+        is_callable($this->transforms[$field]['callback']) ?
+            $this->transforms[$field]['callback'] : null;
         //handle relations
         if ($this->isRelation($field)) {
             $relation = null;
@@ -337,8 +337,8 @@ class BetterBulkLoader extends BulkLoader
             }
             //get the list that relation is added to/checked on
             $relationlist = isset($this->transforms[$field]['list']) &&
-                            $this->transforms[$field]['list'] instanceof SS_List ?
-                            $this->transforms[$field]['list'] : null;
+            $this->transforms[$field]['list'] instanceof SS_List ?
+                $this->transforms[$field]['list'] : null;
             //check for the same relation set on the current record
             if ($placeholder->{$relationName."ID"}) {
                 $relation = $placeholder->{$relationName}();
@@ -357,8 +357,8 @@ class BetterBulkLoader extends BulkLoader
             elseif ($columnName) {
                 if ($relationClass = $placeholder->getRelationClass($relationName)) {
                     $relation = $relationClass::get()
-                                    ->filter($columnName, $value)
-                                    ->first();
+                        ->filter($columnName, $value)
+                        ->first();
                     //create empty relation object
                     //and set the given value on the appropriate column
                     if (!$relation) {
@@ -371,11 +371,11 @@ class BetterBulkLoader extends BulkLoader
 
             //link and create relation objects
             $linkexisting = isset($this->transforms[$field]['link']) ?
-                                (bool)$this->transforms[$field]['link'] :
-                                $this->relationLinkDefault;
+                (bool)$this->transforms[$field]['link'] :
+                $this->relationLinkDefault;
             $createnew = isset($this->transforms[$field]['create']) ?
-                                (bool)$this->transforms[$field]['create'] :
-                                $this->relationCreateDefault;
+                (bool)$this->transforms[$field]['create'] :
+                $this->relationCreateDefault;
             //ditch relation if we aren't linking
             if (!$linkexisting && $relation && $relation->isInDB()) {
                 $relation = null;
@@ -427,7 +427,7 @@ class BetterBulkLoader extends BulkLoader
         if (strpos($field, '.') !== false) {
             list($field, $columnName) = explode('.', $field);
         }
-        $has_ones = singleton($this->objectClass)->has_one();
+        $has_ones = singleton($this->objectClass)->hasOne();
         //check if relation is present in has ones
         return isset($has_ones[$field]);
     }
@@ -477,8 +477,8 @@ class BetterBulkLoader extends BulkLoader
                     continue;
                 }
                 $existingRecord = $this->getDataList()
-                                    ->filter($fieldName, $record[$fieldName])
-                                    ->first();
+                    ->filter($fieldName, $record[$fieldName])
+                    ->first();
                 if ($existingRecord) {
                     return $existingRecord;
                 }
@@ -533,7 +533,7 @@ class BetterBulkLoader extends BulkLoader
         $map = $this->getMappableFieldsForClass($this->objectClass);
         //set up 'dot notation' (Relation.Field) style mappings
         if ($includerelations) {
-            if ($has_ones = singleton($this->objectClass)->has_one()) {
+            if ($has_ones = singleton($this->objectClass)->hasOne()) {
                 foreach ($has_ones as $relationship => $type) {
                     $fields = $this->getMappableFieldsForClass($type);
                     foreach ($fields as $field => $title) {
@@ -557,7 +557,7 @@ class BetterBulkLoader extends BulkLoader
         $singleton = singleton($class);
         $fields = (array)$singleton->fieldLabels(false);
         foreach ($fields as $field => $label) {
-            if (!$singleton->db($field)) {
+            if (!$singleton->getField($field)) {
                 unset($fields[$field]);
             }
         }

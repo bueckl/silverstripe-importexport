@@ -1,4 +1,3 @@
-<% require css(importexport/css/csvpreviewer.css) %>
 <div class="csvpreviewer">
 	<table class="csvpreviewer_table">
 		<thead>

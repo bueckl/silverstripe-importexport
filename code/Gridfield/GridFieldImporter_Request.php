@@ -6,11 +6,19 @@
  */
 namespace ImportExport\Gridfield;
 
+use http\Exception\InvalidArgumentException;
 use ImportExport\CSVFieldMapper;
+use Matrix\Exception;
 use Psr\SimpleCache\CacheInterface;
+use SilverStripe\AssetAdmin\Controller\AssetAdmin;
 use SilverStripe\AssetAdmin\Forms\UploadField;
 use SilverStripe\Assets\File;
+use SilverStripe\Assets\FileNameFilter;
+use SilverStripe\Assets\Storage\AssetContainer;
+use SilverStripe\Assets\Storage\AssetStore;
+use SilverStripe\Assets\Upload;
 use SilverStripe\Control\Controller;
+use SilverStripe\Control\Director;
 use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Control\HTTPResponse;
 use SilverStripe\Control\RequestHandler;
@@ -19,6 +27,7 @@ use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\BulkLoader_Result;
 use SilverStripe\Forms\CheckboxField;
 use SilverStripe\Forms\FieldList;
+use SilverStripe\Forms\FileUploadReceiver;
 use SilverStripe\Forms\Form;
 use SilverStripe\Forms\FormAction;
 use SilverStripe\Forms\GridField\GridField;
@@ -26,11 +35,12 @@ use SilverStripe\Forms\GridField\GridField_URLHandler;
 use SilverStripe\Forms\GridField\GridFieldDetailForm_ItemRequest;
 use SilverStripe\Forms\HiddenField;
 use SilverStripe\Forms\LiteralField;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\Security\Security;
 use SilverStripe\View\ArrayData;
 
 class GridFieldImporter_Request extends RequestHandler
 {
-
     /**
      * Gridfield instance
      * @var GridField
@@ -60,7 +70,7 @@ class GridFieldImporter_Request extends RequestHandler
      * @var array
      */
     private static $allowed_actions = array(
-        'preview', 'upload', 'import'
+        'preview', 'saveInto', 'import'
     );
 
     /**
@@ -68,7 +78,7 @@ class GridFieldImporter_Request extends RequestHandler
      * @var array
      */
     private static $url_handlers = array(
-        'upload!' => 'upload',
+        'saveInto!' => 'saveInto',
         '$Action/$FileID' => '$Action'
     );
 
@@ -102,25 +112,95 @@ class GridFieldImporter_Request extends RequestHandler
      * @param  HTTPRequest $request
      * @return string
      */
-    public function upload(HTTPRequest $request)
+    public function saveInto(HTTPRequest $request)
     {
-        $field = $this->getUploadField();
-        $uploadResponse = $field->upload($request);
-        //decode response body. ugly hack ;o
-        $body = json_decode($uploadResponse->getBody());
-        $body = array_shift($body);
-        //add extra data
-        $body->import_url = Controller::join_links(
-            $this->Link('preview'), $body->id,
+        $folder = 'csvImports';
+        $tmpFile = $request->postVar('file');
+
+        if (empty($tmpFile)) {
+            $error = _t('SilverStripe\\Forms\\FileUploadReceiver.FIELDNOTSET', 'File information not found');
+            return null;
+        }
+
+        $relationClass = File::get_class_for_file_extension(
+            File::get_file_extension($tmpFile['name'])
+        );
+
+        $fileObject = Injector::inst()->create($relationClass);
+
+        if (! ($fileObject instanceof DataObject) || !($fileObject instanceof AssetContainer)) {
+            throw new InvalidArgumentException("Invalid asset container $relationClass");
+        }
+
+
+        try {
+            $upload = Upload::create();
+            $this->tmpFileValidate($upload, $tmpFile);
+            $filename = $this->cleanFileName($folder, $tmpFile);
+            $this->storeTempFile($tmpFile, $fileObject, $filename);
+
+            if ($fileObject instanceof DataObject) {
+                $fileObject->write();
+            }
+
+        } catch (Exception $e) {
+            // we shouldn't get an error here, but just in case
+            $error = $e->getMessage();
+            return null;
+        }
+
+        $result = [
+            AssetAdmin::singleton()->getObjectFromData($fileObject)
+        ];
+
+        $result[0]['import_url'] = Controller::join_links(
+            $this->Link('preview'), $result[0]['id'],
             // Also pull the back URL from the current request so we can persist this particular URL through the following pages.
             "?BackURL=" . $this->getBackURL($request)
         );
-        //don't return buttons at all
-        unset($body->buttons);
-        //re-encode
-        $response = new HTTPResponse(json_encode(array($body)));
 
-        return $response;
+        return (new HTTPResponse(json_encode($result)))
+            ->addHeader('Content-Type', 'application/json');
+    }
+
+    public function storeTempFile($tmpFile, $fileObject, $filename) {
+        $conflictResolution = AssetStore::CONFLICT_OVERWRITE;
+        $config = [
+            'conflict' => $conflictResolution,
+            'visibility' => AssetStore::VISIBILITY_PROTECTED
+        ];
+        return $fileObject->setFromLocalFile($tmpFile['tmp_name'], $filename, null, null, $config);
+    }
+
+    public function cleanFileName($folder, $tmpFile) {
+        // Clean filename
+        if (!$folder) {
+            $folder = $this->config()->uploads_folder;
+        }
+        $nameFilter = FileNameFilter::create();
+        $file = $nameFilter->filter($tmpFile['name']);
+        $filename = basename($file);
+        if ($folder) {
+            $filename = File::join_paths($folder, $filename);
+        }
+
+        return $filename;
+    }
+
+    public function tmpFileValidate($upload, $tmpFile) {
+
+        if (!is_array($tmpFile)) {
+            throw new InvalidArgumentException(
+                "Upload::load() Not passed an array.  Most likely, the form hasn't got the right enctype"
+            );
+        }
+
+        // Validate
+        $upload->clearErrors();
+        $valid = $upload->validate($tmpFile);
+        if (!$valid) {
+            return false;
+        }
     }
 
     /**
@@ -135,8 +215,17 @@ class GridFieldImporter_Request extends RequestHandler
         if (!$file) {
             return "file not found";
         }
-        //TODO: validate file?
-        $mapper = new CSVFieldMapper($file->getFullPath());
+
+        $publicPath = Director::publicFolder(); ///var/www/html/ss4/brandday/public
+        $assets = '/assets';
+        $protected = '/.protected';
+
+        $fPath = explode("/assets", $file->getSourceURL());
+        $filename = $fPath[1]; ///assets/csvImports/8e91352a66/export-25-11-2020-12-49-v72.csv
+
+        $fileReadPath = $publicPath . $assets . $protected . $filename;
+
+        $mapper = new CSVFieldMapper($fileReadPath);
         $mapper->setMappableCols($this->getMappableColumns());
         //load previously stored values
         if ($cachedmapping = $this->getCachedMapping()) {
@@ -144,9 +233,16 @@ class GridFieldImporter_Request extends RequestHandler
         }
 
         $form = $this->MapperForm();
+
+
+
+
         $form->Fields()->unshift(
             new LiteralField('mapperfield', $mapper->forTemplate())
         );
+
+
+
         $form->Fields()->push(new HiddenField("BackURL", "BackURL", $this->getBackURL($request)));
         $form->setFormAction($this->Link('import').'/'.$file->ID);
         $content = ArrayData::create(array(
@@ -196,7 +292,7 @@ class GridFieldImporter_Request extends RequestHandler
     protected function getMappableColumns()
     {
         return $this->component->getLoader($this->gridField)
-                    ->getMappableColumns();
+            ->getMappableColumns();
     }
 
     /**
@@ -207,8 +303,8 @@ class GridFieldImporter_Request extends RequestHandler
     {
         $hasheader = (bool)$request->postVar('HasHeader');
         $cleardata = $this->component->getCanClearData() ?
-                         (bool)$request->postVar('ClearData') :
-                         false;
+            (bool)$request->postVar('ClearData') :
+            false;
         if ($request->postVar('action_import')) {
             $file = File::get()
                 ->byID($request->param('FileID'));
@@ -314,7 +410,7 @@ class GridFieldImporter_Request extends RequestHandler
     protected function getCachedMapping()
     {
         $cache = Injector::inst()->get(CacheInterface::class . '.gridfieldimporter');
-        if ($result = $cache->load($this->cacheKey())) {
+        if ($result = $cache->get($this->cacheKey())) {
             return unserialize($result);
         }
     }
@@ -327,33 +423,33 @@ class GridFieldImporter_Request extends RequestHandler
         return md5($this->gridField->Link());
     }
 
-   /**
-    * Get's the previous URL that lead up to the current request.
-    *
-    * NOTE: Honestly, this should be built into SS_HTTPRequest, but we can't depend on that right now... so instead,
-    * this is being copied verbatim from Controller (in the framework).
-    *
-    * @param HTTPRequest $request
-    * @return string
-    */
-   public function getBackURL() {
-       $request = $this->getRequest();
-      // Initialize a sane default (basically redirects to root admin URL).
-      $controller = $this->getToplevelController();
-      $url = method_exists($this->requestHandler, "Link") ?
+    /**
+     * Get's the previous URL that lead up to the current request.
+     *
+     * NOTE: Honestly, this should be built into SS_HTTPRequest, but we can't depend on that right now... so instead,
+     * this is being copied verbatim from Controller (in the framework).
+     *
+     * @param HTTPRequest $request
+     * @return string
+     */
+    public function getBackURL() {
+        $request = $this->getRequest();
+        // Initialize a sane default (basically redirects to root admin URL).
+        $controller = $this->getToplevelController();
+        $url = method_exists($this->requestHandler, "Link") ?
             $this->requestHandler->Link() :
             $controller->Link();
 
-      // Try to parse out a back URL using standard framework technique.
-      if($request->requestVar('BackURL')) {
-         $url = $request->requestVar('BackURL');
-      } else if($request->isAjax() && $request->getHeader('X-Backurl')) {
-         $url = $request->getHeader('X-Backurl');
-      } else if($request->getHeader('Referer')) {
-         $url = $request->getHeader('Referer');
-      }
+        // Try to parse out a back URL using standard framework technique.
+        if($request->requestVar('BackURL')) {
+            $url = $request->requestVar('BackURL');
+        } else if($request->isAjax() && $request->getHeader('X-Backurl')) {
+            $url = $request->getHeader('X-Backurl');
+        } else if($request->getHeader('Referer')) {
+            $url = $request->getHeader('Referer');
+        }
 
-      return $url;
-   }
+        return $url;
+    }
 
 }

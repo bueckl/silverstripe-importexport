@@ -4,6 +4,7 @@
  */
 namespace ImportExport;
 
+use League\Csv\Reader;
 use SilverStripe\Dev\CSVParser;
 use SilverStripe\ORM\ArrayList;
 use SilverStripe\View\ArrayData;
@@ -40,7 +41,7 @@ class CSVPreviewer extends ViewableData
      */
     public function loadCSV()
     {
-        $parser = new CSVParser($this->file);
+        $parser = Reader::createFromPath($this->file, 'r');
         $count = 0;
         foreach ($parser as $row) {
             $this->rows[]= $row;

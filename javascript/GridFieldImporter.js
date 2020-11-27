@@ -2,8 +2,6 @@
 
     $.entwine('ss', function ($) {
 
-        console.log('.....gggggggggg...')
-
         //hide the importer upload field on load
         $("div.csv-importer").entwine({
             onmatch: function() {
@@ -14,7 +12,6 @@
 
         $('#action_importcsv').entwine({
             onclick: function(e){
-                console.log('.....clicked...')
                 $('div.csv-importer').entwine('.', function($){
                     this.toggle();
                 });
@@ -22,17 +19,27 @@
             }
         });
 
-        $(".import-upload-csv-field").entwine({
-            //when file has uploaded, change url to the field mapper
-            onmatch: function() {
-                console.log('...importer matched...')
-                this.on('fileuploaddone', function(e,data){
-                    e.preventDefault();
-                    console.log('....file uploaded....')
-                    console.log(data)
-                    // window.location.href = data.result[0].import_url;
-                });
-            }
+
+        $('#csvupload').on('change', function() {
+
+            let url = $(".toggle-csv-fields").data("url");
+            let file_data = $(this).prop('files')[0];
+            let form_data = new FormData();
+            form_data.append('file', file_data);
+
+            $.ajax({
+                url: url + '/' + 'importer/saveInto', // point to server-side PHP script
+                dataType: 'text',  // what to expect back from the PHP script, if anything
+                cache: false,
+                contentType: false,
+                processData: false,
+                data: form_data,
+                type: 'post',
+                success: function(data){
+                    const parsed = JSON.parse(data);
+                    window.location.href = parsed[0].import_url;
+                }
+            });
         });
 
 
