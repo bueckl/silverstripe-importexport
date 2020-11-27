@@ -317,7 +317,7 @@ class GridFieldImporter_Request extends RequestHandler
                 $this->cacheMapping($colmap);
                 //do import
                 $results = $this->importFile(
-                    $file->getFullPath(),
+                    $file->getSourceURL(),
                     $colmap,
                     $hasheader,
                     $cleardata
