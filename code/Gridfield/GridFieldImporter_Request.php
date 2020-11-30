@@ -297,6 +297,7 @@ class GridFieldImporter_Request extends RequestHandler
      */
     public function import(HTTPRequest $request)
     {
+        $filePath = null;
         $hasheader = (bool)$request->postVar('HasHeader');
         $cleardata = $this->component->getCanClearData() ?
             (bool)$request->postVar('ClearData') :
@@ -309,11 +310,12 @@ class GridFieldImporter_Request extends RequestHandler
             }
             $colmap = Convert::raw2sql($request->postVar('mappings'));
             if ($colmap) {
+                $filePath = $this->getFileReadPath($file);
                 //save mapping to cache
                 $this->cacheMapping($colmap);
                 //do import
                 $results = $this->importFile(
-                    $this->getFileReadPath($file),
+                    $filePath,
                     $colmap,
                     $hasheader,
                     $cleardata
@@ -321,6 +323,10 @@ class GridFieldImporter_Request extends RequestHandler
                 $this->gridField->getForm()
                     ->sessionMessage($results->getMessage(), 'good');
             }
+        }
+
+        if($filePath) {
+            unlink($filePath);
         }
         $controller = $this->getToplevelController();
         $controller->redirectBack();
