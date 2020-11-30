@@ -65,6 +65,8 @@ class GridFieldImporter_Request extends RequestHandler
      */
     protected $requestHandler;
 
+    protected $newBasePath;
+
     /**
      * RequestHandler allowed actions
      * @var array
@@ -94,6 +96,7 @@ class GridFieldImporter_Request extends RequestHandler
         $this->gridField = $gridField;
         $this->component = $component;
         $this->requestHandler = $handler;
+        $this->setNewBasePath();
         parent::__construct();
     }
 
@@ -216,14 +219,7 @@ class GridFieldImporter_Request extends RequestHandler
             return "file not found";
         }
 
-        $publicPath = Director::publicFolder(); ///var/www/html/ss4/brandday/public
-        $assets = '/assets';
-        $protected = '/.protected';
-
-        $fPath = explode("/assets", $file->getSourceURL());
-        $filename = $fPath[1]; ///assets/csvImports/8e91352a66/export-25-11-2020-12-49-v72.csv
-
-        $fileReadPath = $publicPath . $assets . $protected . $filename;
+        $fileReadPath = $this->getFileReadPath($file);
 
         $mapper = new CSVFieldMapper($fileReadPath);
         $mapper->setMappableCols($this->getMappableColumns());
@@ -317,7 +313,7 @@ class GridFieldImporter_Request extends RequestHandler
                 $this->cacheMapping($colmap);
                 //do import
                 $results = $this->importFile(
-                    $file->getSourceURL(),
+                    $this->getFileReadPath($file),
                     $colmap,
                     $hasheader,
                     $cleardata
@@ -400,7 +396,7 @@ class GridFieldImporter_Request extends RequestHandler
         $mapping = array_filter($mapping);
         if ($mapping && !empty($mapping)) {
             $cache = Injector::inst()->get(CacheInterface::class . '.gridfieldimporter');
-            $cache->save(serialize($mapping), $this->cacheKey());
+            $cache->set($this->cacheKey(), serialize($mapping));
         }
     }
 
@@ -450,6 +446,19 @@ class GridFieldImporter_Request extends RequestHandler
         }
 
         return $url;
+    }
+
+    public function setNewBasePath() {
+        $publicPath = Director::publicFolder();
+        $assets = '/assets';
+        $protected = '/.protected';
+        $this->newBasePath = $publicPath . $assets . $protected;
+    }
+
+    public function getFileReadPath($file) {
+        $fPath = explode("/assets", $file->getSourceURL());
+        $filename = $fPath[1];
+        return $this->newBasePath. $filename;
     }
 
 }
