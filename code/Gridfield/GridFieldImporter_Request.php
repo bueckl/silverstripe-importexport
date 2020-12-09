@@ -38,6 +38,7 @@ use SilverStripe\Forms\LiteralField;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Security\Security;
 use SilverStripe\View\ArrayData;
+use SilverStripe\View\Requirements;
 
 class GridFieldImporter_Request extends RequestHandler
 {
@@ -213,6 +214,9 @@ class GridFieldImporter_Request extends RequestHandler
      */
     public function preview(HTTPRequest $request)
     {
+        Requirements::css('burnbright/silverstripe-importexport: css/csvpreviewer.css');
+        Requirements::css('burnbright/silverstripe-importexport: css/GridFieldImporter_preview.css');
+
         $file = File::get()
             ->byID($request->param('FileID'));
         if (!$file) {
@@ -272,9 +276,16 @@ class GridFieldImporter_Request extends RequestHandler
                 )
             );
         }
+
+        $importAct = new FormAction("import", "Import CSV");
+        $cancelAct = new FormAction("cancel", "Cancel");
+
+        $importAct->addExtraClass('no-ajax btn-outline-secondary');
+        $cancelAct->addExtraClass('no-ajax btn-outline-secondary');
+
         $actions = new FieldList(
-            new FormAction("import", "Import CSV"),
-            new FormAction("cancel", "Cancel")
+            $importAct,
+            $cancelAct
         );
         $form = new Form($this, __FUNCTION__, $fields, $actions);
 

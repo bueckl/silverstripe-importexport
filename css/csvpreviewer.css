@@ -1,9 +1,9 @@
 .csvpreviewer::-webkit-scrollbar {
-	-webkit-appearance: none;
-	background-color: #ccc;
-	width: 2px;
+    -webkit-appearance: none;
+    background-color: #ccc;
+    width: 2px;
 }
- 
+
 .csvpreviewer::-webkit-scrollbar-thumb {
     border-radius: 5px;
     background-color: rgba(0,0,0,.5);
@@ -11,32 +11,33 @@
 }
 
 .csvpreviewer{
-	/* find out how to fill the width and scroll the overflow*/
-	width: 820px;
-	max-width: 100%;
-	overflow-x: scroll;
+    /* find out how to fill the width and scroll the overflow*/
+    /*width: 820px;*/
+    max-width: 100%;
+    overflow-x: scroll;
 }
 
 .csvpreviewer table{
-	
+
 }
 
 .csvpreviewer table th{
-	padding: 3px;
+    padding: 3px;
 }
 
 .csvpreviewer table select{
-	max-width: 10em;
+    max-width: 10em;
+    width:auto;
 }
 
 .csvpreviewer table td{
-	border: 1px solid #ccc;
-	border-collapse: collapse;
-	padding: 5px;
-	background: #fff;
+    border: 1px solid #ccc;
+    border-collapse: collapse;
+    padding: 5px;
+    background: #fff;
 }
 
 #HasHeader,
 #ClearData{
-	padding-left: 5px;
+    padding-left: 5px;
 }
