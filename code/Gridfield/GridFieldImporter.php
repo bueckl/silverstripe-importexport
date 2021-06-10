@@ -117,8 +117,9 @@ class GridFieldImporter implements GridField_HTMLProvider, GridField_URLHandler
             null
         );
         $button->setAttribute('data-icon', 'drive-upload');
-        $button->addExtraClass('no-ajax');
+        $button->addExtraClass('no-ajax font-icon-upload grid-print-upload btn btn-secondary');
         $uploadfield = $this->getUploadField($gridField);
+        $uploadfield->addExtraClass('btn btn-secondary');
         $data = array(
             'Button' => $button,
             'UploadField' => $uploadfield
@@ -143,7 +144,7 @@ class GridFieldImporter implements GridField_HTMLProvider, GridField_URLHandler
     public function getUploadField(GridField $gridField)
     {
         $uploadField = FileField::create(
-            'csvupload'
+            'csvupload', 'Upload CSV'
         );
 
         return $uploadField;
