@@ -24,3 +24,8 @@
     -ms-word-break: normal;
     word-break: normal;
 }
+
+#Form_EditForm_error {
+    overflow-y: scroll;
+    height: 100px;
+}
