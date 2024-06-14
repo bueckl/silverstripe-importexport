@@ -5,19 +5,21 @@
  */
 namespace ImportExport\Gridfield;
 
-use ImportExport\Bulkloader\BetterBulkLoader;
-use ImportExport\Bulkloader\ListBulkLoader;
-use ImportExport\Bulkloader\Sources\CsvBulkLoaderSource;
-use SilverStripe\AssetAdmin\Forms\UploadField;
-use SilverStripe\Core\Config\Config;
-use SilverStripe\Forms\FileField;
-use SilverStripe\Forms\GridField\GridField;
-use SilverStripe\Forms\GridField\GridField_FormAction;
-use SilverStripe\Forms\GridField\GridField_HTMLProvider;
-use SilverStripe\Forms\GridField\GridField_URLHandler;
-use SilverStripe\ORM\HasManyList;
+use GuzzleHttp\Psr7\Request;
 use SilverStripe\View\ArrayData;
+use SilverStripe\Forms\FileField;
+use SilverStripe\ORM\HasManyList;
 use SilverStripe\View\Requirements;
+use SilverStripe\Core\Config\Config;
+use ImportExport\Bulkloader\ListBulkLoader;
+use SilverStripe\Forms\GridField\GridField;
+use ImportExport\Bulkloader\BetterBulkLoader;
+use SilverStripe\AssetAdmin\Forms\UploadField;
+use SilverStripe\Forms\GridField\GridField_FormAction;
+use SilverStripe\Forms\GridField\GridField_URLHandler;
+use ImportExport\Bulkloader\Sources\CsvBulkLoaderSource;
+use SilverStripe\Forms\GridField\GridField_HTMLProvider;
+use ImportExport\Gridfield\GridFieldImporter_Request;
 
 class GridFieldImporter implements GridField_HTMLProvider, GridField_URLHandler
 {

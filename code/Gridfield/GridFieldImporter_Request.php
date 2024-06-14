@@ -133,7 +133,7 @@ class GridFieldImporter_Request extends RequestHandler
         $fileObject = Injector::inst()->create($relationClass);
 
         if (! ($fileObject instanceof DataObject) || !($fileObject instanceof AssetContainer)) {
-            throw new InvalidArgumentException("Invalid asset container $relationClass");
+            throw new \InvalidArgumentException("Invalid asset container $relationClass");
         }
 
 
@@ -194,7 +194,7 @@ class GridFieldImporter_Request extends RequestHandler
     public function tmpFileValidate($upload, $tmpFile) {
 
         if (!is_array($tmpFile)) {
-            throw new InvalidArgumentException(
+            throw new \InvalidArgumentException(
                 "Upload::load() Not passed an array.  Most likely, the form hasn't got the right enctype"
             );
         }
@@ -307,7 +307,7 @@ class GridFieldImporter_Request extends RequestHandler
      * @param  HTTPRequest $request
      */
     public function import(HTTPRequest $request)
-    {
+    {        
         $filePath = null;
         $hasheader = (bool)$request->postVar('HasHeader');
         $cleardata = $this->component->getCanClearData() ?
