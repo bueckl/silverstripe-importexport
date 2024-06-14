@@ -72,21 +72,23 @@ class CsvBulkLoaderSource extends BulkLoaderSource
      * Get a new CSVParser using defined settings.
      * @return \Iterator
      */
-    public function getIterator()
+    public function getIterator(): \Traversable
     {
         if (!file_exists($this->filepath)) {
             //TODO: throw exception instead?
             return null;
         }
+        
         $header = $this->hasheader ? $this->getFirstRow() : null;
         $output = array();
-
+        
         $config = new LexerConfig();
         $config->setDelimiter($this->delimiter);
         $config->setEnclosure($this->enclosure);
         $config->setIgnoreHeaderLine($this->hasheader);
 
         $interpreter = new Interpreter();
+        
         // Ignore row column count consistency
         $interpreter->unstrict();
         $interpreter->addObserver(function (array $row) use (&$output, $header) {
@@ -104,8 +106,10 @@ class CsvBulkLoaderSource extends BulkLoaderSource
         });
 
         $lexer = new Lexer($config);
-        $lexer->parse($this->filepath, $interpreter);
 
+        
+        $lexer->parse($this->filepath, $interpreter);
+        
         return new \ArrayIterator($output);
     }
 

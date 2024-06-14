@@ -122,6 +122,7 @@ class GridFieldImporter_Request extends RequestHandler
         $tmpFile = $request->postVar('file');
 
         if (empty($tmpFile)) {
+            
             $error = _t('SilverStripe\\Forms\\FileUploadReceiver.FIELDNOTSET', 'File information not found');
             return null;
         }
@@ -307,7 +308,8 @@ class GridFieldImporter_Request extends RequestHandler
      * @param  HTTPRequest $request
      */
     public function import(HTTPRequest $request)
-    {        
+    {
+        
         $filePath = null;
         $hasheader = (bool)$request->postVar('HasHeader');
         $cleardata = $this->component->getCanClearData() ?
@@ -320,8 +322,11 @@ class GridFieldImporter_Request extends RequestHandler
                 return "file not found";
             }
             $colmap = Convert::raw2sql($request->postVar('mappings'));
+
+            
             if ($colmap) {
                 $filePath = $this->getFileReadPath($file);
+                
                 //save mapping to cache
                 $this->cacheMapping($colmap);
                 //do import

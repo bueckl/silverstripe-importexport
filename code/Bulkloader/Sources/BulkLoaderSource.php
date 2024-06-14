@@ -16,5 +16,5 @@ abstract class BulkLoaderSource implements \IteratorAggregate
      * Records are expected to be 1 dimensional key-value arrays.
      * @return Iterator
      */
-    abstract public function getIterator();
+    abstract public function getIterator(): \Traversable;
 }

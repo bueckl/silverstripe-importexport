@@ -61,7 +61,7 @@
         
             let form_data = new FormData();
             form_data.append('file', file_data);
-            alert("Uploading file...")
+            //console.log(form_data);
             $.ajax({
                 url: url + '/importer/saveInto', // point to server-side PHP script
                 dataType: 'text',  // what to expect back from the PHP script, if anything
