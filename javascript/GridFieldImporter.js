@@ -42,7 +42,7 @@
         //     });
         // });
 
-        $('#csvupload').on('change', function() {
+        $(document).on('change', '#csvupload', function() {
 
             let url = $(".toggle-csv-fields").data("url");
             let file_data = $(this).prop('files')[0];
