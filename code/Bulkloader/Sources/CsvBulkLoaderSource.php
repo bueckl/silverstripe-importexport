@@ -72,11 +72,11 @@ class CsvBulkLoaderSource extends BulkLoaderSource
      * Get a new CSVParser using defined settings.
      * @return \Iterator
      */
-    public function getIterator()
+    public function getIterator(): \Traversable
     {
         if (!file_exists($this->filepath)) {
             //TODO: throw exception instead?
-            return null;
+            return new \ArrayIterator([]); // Return empty iterator if file doesn't exist
         }
         $header = $this->hasheader ? $this->getFirstRow() : null;
         $output = array();
