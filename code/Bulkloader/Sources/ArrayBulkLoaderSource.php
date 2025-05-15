@@ -16,7 +16,7 @@ class ArrayBulkLoaderSource extends BulkLoaderSource
         $this->data = $data;
     }
 
-    public function getIterator()
+    public function getIterator(): \Traversable
     {
         return new \ArrayIterator($this->data);
     }
