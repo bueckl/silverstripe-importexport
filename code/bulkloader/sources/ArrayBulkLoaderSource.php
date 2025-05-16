@@ -4,6 +4,8 @@
  * Array Bulk Loader Source
  * Useful for testing bulk loader. The output is the same as input.
  */
+namespace ImportExport\Bulkloader\Sources;
+
 class ArrayBulkLoaderSource extends BulkLoaderSource
 {
 
@@ -14,9 +16,9 @@ class ArrayBulkLoaderSource extends BulkLoaderSource
         $this->data = $data;
     }
 
-    public function getIterator()
+    public function getIterator(): \Traversable
     {
-        return new ArrayIterator($this->data);
+        return new \ArrayIterator($this->data);
     }
 
     public function setData($data)
